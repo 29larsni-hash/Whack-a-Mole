@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VR Whack-a-Mole Game</title>
+    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+    <style>
+        #gameUI {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: Arial;
+            font-size: 20px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameUI">
+        <div>Score: <span id="score">0</span></div>
+        <div>Time: <span id="timer">60</span>s</div>
+    </div>
+
+    <a-scene embedded style="height: 100vh;">
+        <!-- Assets -->
+        <a-assets>
+            <a-mixin id="mole-box" 
+                     geometry="primitive: box; width: 1; height: 1; depth: 1"
+                     material="color: brown"
+                     animation__popup="property: position; to: 0 1 0; dur: 500; easing: easeOutQuad"
+                     animation__hide="property: position; to: 0 -0.5 0; dur: 300; easing: easeInQuad">
+            </a-mixin>
+            
+            <a-mixin id="mole-sphere"
+                     geometry="primitive: sphere; radius: 0.5"
+                     material="color: #8B4513"
+                     animation__popup="property: position; to: 0 1 0; dur: 500; easing: easeOutQuad"
+                     animation__hide="property: position; to: 0 -0.5 0; dur: 300; easing: easeInQuad">
+            </a-mixin>
+        </a-assets>
+
+        <!-- Environment -->
+        <a-sky color="#87CEEB"></a-sky>
+        <a-plane position="0 0 0" rotation="-90 0 0" width="20" height="20" color="#228B22"></a-plane>
+        
+        <!-- Lighting -->
+        <a-light type="ambient" color="#404040"></a-light>
+        <a-light type="directional" position="0 10 0" color="#ffffff"></a-light>
+
+        <!-- Mole spawn positions -->
+        <a-entity id="mole1" position="-3 -0.5 -2"></a-entity>
+        <a-entity id="mole2" position="0 -0.5 -2"></a-entity>
+        <a-entity id="mole3" position="3 -0.5 -2"></a-entity>
+        <a-entity id="mole4" position="-3 -0.5 -5"></a-entity>
+        <a-entity id="mole5" position="0 -0.5 -5"></a-entity>
+        <a-entity id="mole6" position="3 -0.5 -5"></a-entity>
+
+        <!-- Camera with cursor for gaze interaction -->
+        <a-camera position="0 1.6 4">
+            <a-cursor 
+                geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                material="color: white; shader: flat"
+                raycaster="objects: .mole"
+                fuse="true"
+                fusetime="1000">
+            </a-cursor>
+        </a-camera>
+    </a-scene>
+
+    <script>
+        // Game variables
+        let score = 0;
+        let timeLeft = 60;
+        let gameActive = true;
+        let activeMoles = [];
+
+        // Get UI elements
+        const scoreElement = document.getElementById('score');
+        const timerElement = document.getElementById('timer');
+
+        // Mole spawn positions
+        const spawnPositions = [
+            { id: 'mole1', pos: '-3 -0.5 -2' },
+            { id: 'mole2', pos: '0 -0.5 -2' },
+            { id: 'mole3', pos: '3 -0.5 -2' },
+            { id: 'mole4', pos: '-3 -0.5 -5' },
+            { id: 'mole5', pos: '0 -0.5 -5' },
+            { id: 'mole6', pos: '3 -0.5 -5' }
+        ];
+
+        // Create a mole at specified position
+        function createMole(spawnPoint) {
+            const moleType = Math.random() > 0.5 ? 'mole-box' : 'mole-sphere';
+            const mole = document.createElement('a-entity');
+            
+            mole.setAttribute('mixin', moleType);
+            mole.setAttribute('position', spawnPoint.pos);
+            mole.setAttribute('class', 'mole');
+            mole.setAttribute('id', 'active-' + spawnPoint.id);
+
+            // Add click and gaze event listeners
+            mole.addEventListener('click', hitMole);
+            mole.addEventListener('fusing', startFusing);
+            mole.addEventListener('fused', hitMole);
+
+            document.querySelector('a-scene').appendChild(mole);
+            
+            // Trigger popup animation
+            setTimeout(() => {
+                mole.emit('popup');
+            }, 100);
+
+            return mole;
+        }
+
+        // Handle mole hit
+        function hitMole(event) {
+            if (!gameActive) return;
+            
+            const mole = event.target;
+            score += 10;
+            scoreElement.textContent = score;
+            
+            // Change color to show hit
+            mole.setAttribute('material', 'color', 'red');
+            
+            // Remove mole after short delay
+            setTimeout(() => {
+                removeMole(mole);
+            }, 200);
+        }
+
+        // Handle fuse start (visual feedback for gaze)
+        function startFusing(event) {
+            const mole = event.target;
+            mole.setAttribute('material', 'color', 'yellow');
+        }
+
+        // Remove mole from scene
+        function removeMole(mole) {
+            if (mole && mole.parentNode) {
+                mole.emit('hide');
+                setTimeout(() => {
+                    mole.parentNode.removeChild(mole);
+                }, 300);
+            }
+            
+            // Remove from active moles array
+            const index = activeMoles.indexOf(mole);
+            if (index > -1) {
+                activeMoles.splice(index, 1);
+            }
+        }
+
+        // Spawn random mole
+        function spawnRandomMole() {
+            if (!gameActive || activeMoles.length >= 3) return;
+            
+            const availablePositions = spawnPositions.filter(pos => {
+                return !document.getElementById('active-' + pos.id);
+            });
+            
+            if (availablePositions.length === 0) return;
+            
+            const randomPosition = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+            const mole = createMole(randomPosition);
+            activeMoles.push(mole);
+            
+            // Auto-remove mole after 2-3 seconds
+            setTimeout(() => {
+                if (mole.parentNode) {
+                    removeMole(mole);
+                }
+            }, 2000 + Math.random() * 1000);
+        }
+
+        // Game timer
+        function updateTimer() {
+            if (!gameActive) return;
+            
+            timeLeft--;
+            timerElement.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        // End game
+        function endGame() {
+            gameActive = false;
+            alert(`Game Over! Final Score: ${score}`);
+            
+            // Clean up remaining moles
+            activeMoles.forEach(mole => removeMole(mole));
+            activeMoles = [];
+        }
+
+        // Start game when scene loads
+        document.querySelector('a-scene').addEventListener('loaded', () => {
+            console.log('VR Whack-a-Mole Game Started!');
+            
+            // Spawn moles every 1-2 seconds
+            setInterval(spawnRandomMole, 1000 + Math.random() * 1000);
+            
+            // Update timer every second
+            setInterval(updateTimer, 1000);
+        });
+    </script>
+</body>
+</html>
