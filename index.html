@@ -15,7 +15,9 @@
             background: rgba(0,0,0,0.7);
             padding: 10px;
             border-radius: 5px;
+            display: none;
         }
+        
         #instructionsScreen {
             position: fixed;
             top: 0;
@@ -67,16 +69,16 @@
         #startButton:hover {
             background: #45a049;
         }
+        
+        #startButton:active {
+            background: #3d8b40;
+            transform: scale(0.98);
+        }
     </style>
 </head>
 <body>
-    <div id="gameUI">
-        <div>Score: <span id="score">0</span></div>
-        <div>Time: <span id="timer">60</span>s</div>
-    </div>
-
- <div id="instructionsScreen">
-    let gameActive = false;
+    <!-- Instructions Screen -->
+    <div id="instructionsScreen">
         <h1>🎯 VR Whack-a-Mole Game</h1>
         
         <h2>How to Play:</h2>
@@ -88,9 +90,14 @@
         <p>📦 <strong>Moles:</strong> Brown cubes will randomly pop up from the ground</p>
         <p>🎨 <strong>Visual Feedback:</strong> Moles turn yellow when targeted, red when hit</p>
         
-        <button id="startButton" onclick="startGame()">START GAME</button>
+        <button id="startButton">START GAME</button>
     </div>
-    
+
+    <div id="gameUI">
+        <div>Score: <span id="score">0</span></div>
+        <div>Time: <span id="timer">60</span>s</div>
+    </div>
+
     <a-scene embedded style="height: 100vh;">
         <!-- Assets -->
         <a-assets>
@@ -126,29 +133,67 @@
         // Game variables
         let score = 0;
         let timeLeft = 60;
+        let gameActive = false;
+        let gameStarted = false;
         let activeMoles = [];
         let gameTimer;
         let spawnTimer;
-         gameActive = true;
+
         // Get UI elements
         const scoreElement = document.getElementById('score');
         const timerElement = document.getElementById('timer');
+        const instructionsScreen = document.getElementById('instructionsScreen');
+        const gameUI = document.getElementById('gameUI');
+        const startButton = document.getElementById('startButton');
 
-        // Mole spawn positions - using coordinates directly
+        // Mole spawn positions
         const spawnPositions = [
             { id: 'pos1', x: -4, y: -0.5, z: -1 },
             { id: 'pos2', x: -2, y: -0.5, z: -1 },
             { id: 'pos3', x: 0, y: -0.5, z: -1 },
             { id: 'pos4', x: 2, y: -0.5, z: -1 },
             { id: 'pos5', x: 4, y: -0.5, z: -1 },
-            
+            { id: 'pos6', x: -4, y: -0.5, z: -3 },
+            { id: 'pos7', x: -2, y: -0.5, z: -3 },
+            { id: 'pos8', x: 0, y: -0.5, z: -3 },
+            { id: 'pos9', x: 2, y: -0.5, z: -3 },
+            { id: 'pos10', x: 4, y: -0.5, z: -3 },
+            { id: 'pos11', x: -4, y: -0.5, z: -5 },
+            { id: 'pos12', x: -2, y: -0.5, z: -5 },
+            { id: 'pos13', x: 0, y: -0.5, z: -5 },
+            { id: 'pos14', x: 2, y: -0.5, z: -5 },
+            { id: 'pos15', x: 4, y: -0.5, z: -5 },
+            { id: 'pos16', x: -4, y: -0.5, z: -7 },
+            { id: 'pos17', x: -2, y: -0.5, z: -7 },
+            { id: 'pos18', x: 0, y: -0.5, z: -7 },
+            { id: 'pos19', x: 2, y: -0.5, z: -7 },
+            { id: 'pos20', x: 4, y: -0.5, z: -7 }
         ];
+
+        // Start game from menu button
+        function startGameFromMenu() {
+            console.log('Start button clicked!');
+            
+            // Hide instructions and show game UI
+            instructionsScreen.style.display = 'none';
+            gameUI.style.display = 'block';
+            gameStarted = true;
+            
+            // Reset game variables
+            score = 0;
+            timeLeft = 60;
+            scoreElement.textContent = score;
+            timerElement.textContent = timeLeft;
+            
+            // Start game after short delay
+            setTimeout(startGame, 1000);
+        }
 
         // Create a mole at specified position
         function createMole(spawnPoint) {
             const mole = document.createElement('a-entity');
             const hiddenY = spawnPoint.y;
-            const popupY = 1;
+            const popupY = 2.5;
             
             // Set up the mole with proper attributes
             mole.setAttribute('mixin', 'mole-cube');
@@ -251,7 +296,7 @@
                 if (mole.parentNode && activeMoles.includes(mole)) {
                     removeMole(mole);
                 }
-            }, 1000 + Math.random() * 1000);
+            }, 2000 + Math.random() * 1000);
         }
 
         // Game timer
@@ -280,11 +325,11 @@
             
             // Show final score after short delay
             setTimeout(() => {
-                alert(`Game Over! Final Score: ${score}`);
+                alert(`Game Over! Final Score: ${score} points\n\nRefresh the page to play again!`);
             }, 500);
         }
 
-        // Start the game
+        // Start the actual game
         function startGame() {
             console.log('VR Whack-a-Mole Game Started!');
             gameActive = true;
@@ -298,11 +343,17 @@
             gameTimer = setInterval(updateTimer, 1000);
         }
 
-        // Initialize game when scene loads
+        // Add event listener to start button
+        startButton.addEventListener('click', startGameFromMenu);
+
+        // Initialize when scene loads - but DON'T start the game automatically
         document.querySelector('a-scene').addEventListener('loaded', () => {
-            console.log('Scene loaded, starting game in 2 seconds...');
-            setTimeout(startGame, 2000);
+            console.log('Scene loaded, waiting for player to click START GAME button...');
+            // Game will only start when the start button is clicked
         });
+
+        // Prevent any automatic game starting
+        // Remove the automatic timer that was starting the game before
     </script>
 </body>
 </html>
