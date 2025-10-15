@@ -16,6 +16,57 @@
             padding: 10px;
             border-radius: 5px;
         }
+        #instructionsScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            font-family: Arial;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            text-align: center;
+        }
+        
+        #instructionsScreen h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: #4CAF50;
+        }
+        
+        #instructionsScreen h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #FFA500;
+        }
+        
+        #instructionsScreen p {
+            font-size: 24px;
+            margin-bottom: 15px;
+            max-width: 800px;
+            line-height: 1.5;
+        }
+        
+        #startButton {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background 0.3s;
+        }
+        
+        #startButton:hover {
+            background: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -24,6 +75,21 @@
         <div>Time: <span id="timer">60</span>s</div>
     </div>
 
+ <div id="instructionsScreen">
+        <h1>🎯 VR Whack-a-Mole Game</h1>
+        
+        <h2>How to Play:</h2>
+        <p>🎮 <strong>Goal:</strong> Hit as many moles as you can before time runs out!</p>
+        <p>🎯 <strong>Desktop:</strong> Click on the brown cube moles with your mouse</p>
+        <p>👀 <strong>VR Headset:</strong> Look at a mole for 1 second to hit it</p>
+        <p>⏰ <strong>Time Limit:</strong> You have 60 seconds to get the highest score</p>
+        <p>💯 <strong>Scoring:</strong> Each mole is worth 10 points</p>
+        <p>📦 <strong>Moles:</strong> Brown cubes will randomly pop up from the ground</p>
+        <p>🎨 <strong>Visual Feedback:</strong> Moles turn yellow when targeted, red when hit</p>
+        
+        <button id="startButton" onclick="startGameFromMenu()">START GAME</button>
+    </div>
+    
     <a-scene embedded style="height: 100vh;">
         <!-- Assets -->
         <a-assets>
@@ -60,7 +126,7 @@
         let score = 0;
         let timeLeft = 60;
         let gameActive = false;
-        let activeMoles = [1000];
+        let activeMoles = [];
         let gameTimer;
         let spawnTimer;
 
@@ -185,7 +251,7 @@
                 if (mole.parentNode && activeMoles.includes(mole)) {
                     removeMole(mole);
                 }
-            }, 2000 + Math.random() * 1000);
+            }, 1000 + Math.random() * 1000);
         }
 
         // Game timer
