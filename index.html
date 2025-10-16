@@ -144,7 +144,6 @@
         const timerElement = document.getElementById('timer');
         const instructionsScreen = document.getElementById('instructionsScreen');
         const gameUI = document.getElementById('gameUI');
-        const startButton = document.getElementById('startButton');
 
         // Mole spawn positions
         const spawnPositions = [
@@ -328,13 +327,33 @@
             gameTimer = setInterval(updateTimer, 1000);
         }
 
-        // Add event listener to start button
-        startButton.addEventListener('click', startGameFromMenu);
+        // Wait for the page to fully load before adding event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up button...');
+            
+            const startButton = document.getElementById('startButton');
+            if (startButton) {
+                console.log('Start button found, adding event listener...');
+                startButton.addEventListener('click', function(event) {
+                    console.log('Button clicked!');
+                    event.preventDefault();
+                    startGameFromMenu();
+                });
+                
+                // Also try with onclick as backup
+                startButton.onclick = function(event) {
+                    console.log('Button onclick triggered!');
+                    event.preventDefault();
+                    startGameFromMenu();
+                };
+            } else {
+                console.error('Start button not found!');
+            }
+        });
 
         // Initialize when scene loads - but DON'T start the game automatically
         document.querySelector('a-scene').addEventListener('loaded', () => {
             console.log('Scene loaded, waiting for player to click START GAME button...');
-            // Game will only start when the start button is clicked
         });
     </script>
 </body>
