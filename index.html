@@ -132,7 +132,7 @@
     <script>
         // Game variables
         let score = 0;
-        let timeLeft = 60;
+        let timeLeft = 90;
         let gameActive = false;
         let gameStarted = false;
         let activeMoles = [];
@@ -152,8 +152,7 @@
             { id: 'pos2', x: -2, y: -0.5, z: -1 },
             { id: 'pos3', x: 0, y: -0.5, z: -1 },
             { id: 'pos4', x: 2, y: -0.5, z: -1 },
-            { id: 'pos5', x: 4, y: -0.5, z: -1 },
-      
+            { id: 'pos5', x: 4, y: -0.5, z: -1 }
         ];
 
         // Start game from menu button
@@ -217,9 +216,6 @@
             
             const mole = event.target;
             if (!mole.classList.contains('mole')) return;
-
-            return mole;
-        }
             
             score += 100;
             scoreElement.textContent = score;
@@ -280,7 +276,7 @@
             const mole = createMole(randomPosition);
             activeMoles.push(mole);
             
-            // Auto-remove mole after 2-3 seconds if not hit
+            // Auto-remove mole after 1-2 seconds if not hit
             setTimeout(() => {
                 if (mole.parentNode && activeMoles.includes(mole)) {
                     removeMole(mole);
@@ -310,7 +306,6 @@
             
             // Clean up remaining moles
             activeMoles.forEach(mole => removeMole(mole));
-            return mole;
             activeMoles = [];
             
             // Show final score after short delay
@@ -341,9 +336,6 @@
             console.log('Scene loaded, waiting for player to click START GAME button...');
             // Game will only start when the start button is clicked
         });
-
-        // Prevent any automatic game starting
-        // Remove the automatic timer that was starting the game before
     </script>
 </body>
 </html>
